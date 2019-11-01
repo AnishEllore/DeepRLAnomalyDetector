@@ -8,10 +8,10 @@ class DataEnvironment:
 	NOT_ANOMALY = 0
 	ACTION_SPACE = [NOT_ANOMALY, ANOMALY]
 	ACTION_SPACE_SIZE = len(ACTION_SPACE)
-	TP_REWARD = 5
-	TN_REWARD = 0
+	TP_REWARD = 10
+	TN_REWARD = 1
 	FP_REWARD = -1
-	FN_REWARD = -5
+	FN_REWARD = -10
 
 	def __init__(self,repo_dir,look_back=LOOK_BACK):
 		self.repo_dir = repo_dir

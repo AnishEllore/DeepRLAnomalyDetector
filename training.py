@@ -1,12 +1,17 @@
-from constants import SHAPE, FILE_PATH, EPISODES, epsilon, EPSILON_DECAY, MIN_EPSILON, AGGREGATE_STATS_EVERY
+from constants import SHAPE, FILE_PATH, EPISODES, epsilon, EPSILON_DECAY, MIN_EPSILON, AGGREGATE_STATS_EVERY,MIN_REWARD,MODEL_NAME
 from environment import DataEnvironment
 from agent import DQNagent
+from validator import validator
 import random
 import numpy as np
-
+from tqdm import tqdm
+import os
+import time
 random.seed(1)
 np.random.seed(1)
 
+if not os.path.isdir('models'):
+    os.makedirs('models')
 env = DataEnvironment(FILE_PATH)
 agent = DQNagent()
 
@@ -54,7 +59,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
 		current_state = new_state
 		step += 1
-	print(cnt)
+	#print(cnt)
 	# Append episode reward to a list and log stats (every given number of episodes)
 	ep_rewards.append(episode_reward)
 	if not episode % AGGREGATE_STATS_EVERY or episode == 1:
@@ -62,14 +67,20 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 		min_reward = min(ep_rewards[-AGGREGATE_STATS_EVERY:])
 		max_reward = max(ep_rewards[-AGGREGATE_STATS_EVERY:])
 		#agent.tensorboard.update_stats(reward_avg=average_reward, reward_min=min_reward, reward_max=max_reward, epsilon=epsilon)
-		print(average_reward,min_reward,max_reward)
+		#print(average_reward,min_reward,max_reward)
 		# Save model, but only when min reward is greater or equal a set value
 		#if min_reward >= MIN_REWARD:
 			#agent.model.save(f'models/{MODEL_NAME}__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')
+
+	if episode >= 1500:
+            agent.model.save(f'models/{MODEL_NAME}__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')
 
 	# Decay epsilon
 	if epsilon > MIN_EPSILON:
 		epsilon *= EPSILON_DECAY
 		epsilon = max(MIN_EPSILON, epsilon)
 
+
 print('done')
+validator(agent,env)
+
