@@ -1,8 +1,8 @@
 import numpy as np
 import keras.backend.tensorflow_backend as backend
-from keras.models import Sequential
+from keras.models import Sequential,load_model
 from keras.layers import LSTM, Dense, Dropout, Conv2D, MaxPooling2D, Activation, Flatten
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD
 from keras.callbacks import TensorBoard
 import tensorflow as tf
 from collections import deque
@@ -14,7 +14,8 @@ class DQNagent:
 	MINIBATCH_SIZE = 32
 	UPDATE_TARGET_EVERY = 5
 	DISCOUNT = 0.99	
-	def __init__(self,shape=SHAPE):
+	def __init__(self,LOAD_MODEL=None,shape=SHAPE):
+		self.LOAD_MODEL = LOAD_MODEL
 		self.model = self.create_model(shape)
 		self.target_model = self.create_model(shape)
 		self.target_model.set_weights(self.model.get_weights())
@@ -25,11 +26,22 @@ class DQNagent:
 		self.target_update_counter = 0
 
 	def create_model(self,shape):
-		model = Sequential()
-		model.add(LSTM(32,input_shape = shape))
-		model.add(Dense(2,activation='linear'))
-		model.compile(loss = 'mae', optimizer='adam')
-		return model
+		if self.LOAD_MODEL is not None:
+			print(f"LOADING {self.LOAD_MODEL}")
+			model = load_model(self.LOAD_MODEL)
+			print(f"Model {self.LOAD_MODEL} loaded")
+			return model
+		else:
+			# model = Sequential()
+			# model.add(LSTM(32,input_shape = shape))
+			# model.add(Dense(2,activation='linear'))
+			# model.compile(loss = 'mae', optimizer='adam')
+			model = Sequential()
+			model.add(LSTM(32,input_shape = shape))
+			model.add(Dense(2,activation='linear'))
+			opt = SGD(lr=0.01, momentum=0.9)
+			model.compile(loss = 'binary_crossentropy', optimizer=opt)
+			return model
 
 	def update_replay_memory(self, transition):
 		# transition is (current_state, action, reward, new_state, done)

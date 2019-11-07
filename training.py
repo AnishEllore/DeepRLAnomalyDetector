@@ -13,9 +13,10 @@ np.random.seed(1)
 if not os.path.isdir('models'):
     os.makedirs('models')
 env = DataEnvironment(FILE_PATH)
-agent = DQNagent()
+LOAD_MODEL = 'models/AnomalyDetection___951.00max__797.20avg__607.00min__1572649628.model'
+agent = DQNagent(LOAD_MODEL)
 
-
+'''
 ep_rewards = [-200]
 for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
@@ -72,8 +73,8 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 		#if min_reward >= MIN_REWARD:
 			#agent.model.save(f'models/{MODEL_NAME}__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')
 
-	if episode >= 1500:
-            agent.model.save(f'models/{MODEL_NAME}__{max_reward:_>7.2f}max_{average_reward:_>7.2f}avg_{min_reward:_>7.2f}min__{int(time.time())}.model')
+	if episode >= 10:
+    	agent.model.save(f'models/{MODEL_NAME}_EPISODES_{EPISODES}{int(time.time())}.model')
 
 	# Decay epsilon
 	if epsilon > MIN_EPSILON:
@@ -82,5 +83,6 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
 
 print('done')
-validator(agent,env)
+'''
+validator(agent,env,10)
 

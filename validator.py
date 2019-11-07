@@ -1,7 +1,11 @@
 from constants import SHAPE
+import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 def validator(agent, env,episodes=1):
+	sns.set(style="whitegrid")
+	#options = deep, muted, pastel, bright, dark, and colorblind
+	#sns.set_palette("Reds",9)
 	for episode in range(episodes):
 		current_state = env.reset()
 		

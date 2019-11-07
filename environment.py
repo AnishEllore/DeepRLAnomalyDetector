@@ -30,9 +30,9 @@ class DataEnvironment:
 
 
 	def reset(self):
-		if self.fix_dataset:
+		if not self.fix_dataset:
 			self.current_file_id = (self.current_file_id + 1)%len(self.repo_files)
-
+		print(self.current_file_id)
 		self.data, self.target = self.repo_data[self.current_file_id], self.repo_target_data[self.current_file_id]
 		self.index_data = self.look_back
 		self.state = self.state_function(self.data, self.index_data)
