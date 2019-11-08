@@ -1,13 +1,14 @@
 import numpy as np
 import keras.backend.tensorflow_backend as backend
-from keras.models import Sequential,load_model
-from keras.layers import LSTM, Dense, Dropout, Conv2D, MaxPooling2D, Activation, Flatten
+from keras.models import Sequential, load_model
+from keras.layers import LSTM, Dense, Dropout, Conv2D, MaxPooling2D, Activation, Flatten, BatchNormalization
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
 import tensorflow as tf
 from collections import deque
 import random, time
-from constants import SHAPE,MODEL_NAME
+from constants import SHAPE, MODEL_NAME
+
 
 class ModifiedTensorBoard(TensorBoard):
 
@@ -40,77 +41,84 @@ class ModifiedTensorBoard(TensorBoard):
     def update_stats(self, **stats):
         self._write_logs(stats, self.step)
 
+
 class DQNagent:
-	REPLAY_MEMORY_SIZE = 50_000
-	MIN_REPLAY_MEMORY_SIZE = 1000
-	MINIBATCH_SIZE = 64
-	UPDATE_TARGET_EVERY = 10
-	DISCOUNT = 0.99	
-	def __init__(self,LOAD_MODEL=None,shape=SHAPE):
-		self.LOAD_MODEL = LOAD_MODEL
-		self.model = self.create_model(shape)
-		self.target_model = self.create_model(shape)
-		self.target_model.set_weights(self.model.get_weights())
+    REPLAY_MEMORY_SIZE = 50_000
+    MIN_REPLAY_MEMORY_SIZE = 1000
+    MINIBATCH_SIZE = 64
+    UPDATE_TARGET_EVERY = 10
+    DISCOUNT = 0.99
 
-		self.replay_memory = deque(maxlen = self.REPLAY_MEMORY_SIZE)
+    def __init__(self, LOAD_MODEL=None, shape=SHAPE):
+        self.LOAD_MODEL = LOAD_MODEL
+        self.model = self.create_model(shape)
+        self.target_model = self.create_model(shape)
+        self.target_model.set_weights(self.model.get_weights())
 
-		self.tensorboard = ModifiedTensorBoard(log_dir="logs/{}-{}".format(MODEL_NAME, int(time.time())))
-		self.target_update_counter = 0
+        self.replay_memory = deque(maxlen=self.REPLAY_MEMORY_SIZE)
 
-	def create_model(self,shape):
-		if self.LOAD_MODEL is not None:
-			print(f"LOADING {self.LOAD_MODEL}")
-			model = load_model(self.LOAD_MODEL)
-			print(f"Model {self.LOAD_MODEL} loaded")
-			return model
-		else:
-			model = Sequential()
-			model.add(LSTM(64,input_shape = shape))
-			model.add(Dense(2,activation='linear'))
-			model.compile(loss='mae', optimizer='adam')
-		return model
+        self.tensorboard = ModifiedTensorBoard(log_dir="logs/{}-{}".format(MODEL_NAME, int(time.time())))
+        self.target_update_counter = 0
 
-	def update_replay_memory(self, transition):
-		# transition is (current_state, action, reward, new_state, done)
-		self.replay_memory.append(transition)
+    def create_model(self, shape):
+        if self.LOAD_MODEL is not None:
+            print(f"LOADING {self.LOAD_MODEL}")
+            model = load_model(self.LOAD_MODEL)
+            print(f"Model {self.LOAD_MODEL} loaded")
+            return model
+        else:
+            model = Sequential()
+            model.add(LSTM(128, input_shape=shape))
+            model.add(Dropout(0.2))
+            model.add(BatchNormalization())
 
-	def get_qs(self,state):
-		return self.model.predict(state)
+            model.add(Dense(32, activation='relu'))
+            model.add(Dropout(0.2))
+            model.add(Dense(2, activation='linear'))
+            model.compile(loss='mae', optimizer='adam')
+        return model
 
-	def train(self, terminal_state, step):
-		if len(self.replay_memory) < self.MIN_REPLAY_MEMORY_SIZE:
-			return
+    def update_replay_memory(self, transition):
+        # transition is (current_state, action, reward, new_state, done)
+        self.replay_memory.append(transition)
 
-		minibatch = random.sample(self.replay_memory,self.MINIBATCH_SIZE)
+    def get_qs(self, state):
+        return self.model.predict(state)
 
-		current_states = np.array([transition[0] for transition in minibatch])
-		current_qs_list = self.model.predict(current_states)
+    def train(self, terminal_state, step):
+        if len(self.replay_memory) < self.MIN_REPLAY_MEMORY_SIZE:
+            return
 
-		new_current_states = np.array([transition[3] for transition in minibatch])
-		future_qs_list = self.target_model.predict(new_current_states)
+        minibatch = random.sample(self.replay_memory, self.MINIBATCH_SIZE)
 
-		X = []
-		Y = []
+        current_states = np.array([transition[0] for transition in minibatch])
+        current_qs_list = self.model.predict(current_states)
 
-		for index, (current_state, action, reward, new_current_state, done) in enumerate(minibatch):
-			if not done:
-				max_future_q = np.max(future_qs_list[index])
-				new_q = reward + self.DISCOUNT * max_future_q
-			else:
-				new_q = reward
+        new_current_states = np.array([transition[3] for transition in minibatch])
+        future_qs_list = self.target_model.predict(new_current_states)
 
-			current_qs = current_qs_list[index]
-			current_qs[action] = new_q
+        X = []
+        Y = []
 
-			X.append(current_state)
-			Y.append(current_qs)
+        for index, (current_state, action, reward, new_current_state, done) in enumerate(minibatch):
+            if not done:
+                max_future_q = np.max(future_qs_list[index])
+                new_q = reward + self.DISCOUNT * max_future_q
+            else:
+                new_q = reward
 
-		self.model.fit(current_states, np.array(Y),batch_size = self.MINIBATCH_SIZE, verbose=0, shuffle = False)
+            current_qs = current_qs_list[index]
+            current_qs[action] = new_q
 
-		# updating to determine if we want to update target_model 
-		if terminal_state:
-			self.target_update_counter += 1
+            X.append(current_state)
+            Y.append(current_qs)
 
-		if self.target_update_counter > self.UPDATE_TARGET_EVERY:
-			self.target_model.set_weights(self.model.get_weights())
-			self.target_update_counter = 0
+        self.model.fit(current_states, np.array(Y), batch_size=self.MINIBATCH_SIZE, verbose=0, shuffle=False, callbacks=[self.tensorboard] if terminal_state else None)
+
+        # updating to determine if we want to update target_model
+        if terminal_state:
+            self.target_update_counter += 1
+
+        if self.target_update_counter > self.UPDATE_TARGET_EVERY:
+            self.target_model.set_weights(self.model.get_weights())
+            self.target_update_counter = 0
