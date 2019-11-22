@@ -1,7 +1,7 @@
-LOOK_BACK = 10
+LOOK_BACK = 5
 FEATURES = 1
 SHAPE = (LOOK_BACK, FEATURES+1)
-FILE_PATH = "/home/anish/PycharmProjects/DeepRLAnomalyDetector/code.v1.tensorflow/env/time_series_repo/A1Benchmark"
+FILE_PATH = "env/time_series_repo/A1Benchmark"
 
 EPISODES = 5000
 epsilon = 1  # not a constant, going to be decayed

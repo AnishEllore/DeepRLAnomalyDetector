@@ -1,12 +1,11 @@
-from constants import SHAPE, FILE_PATH, EPISODES, epsilon, EPSILON_DECAY, MIN_EPSILON, AGGREGATE_STATS_EVERY,MIN_REWARD,MODEL_NAME
+from constants import FILE_PATH
 from environment import DataEnvironment
 from agent import DQNagent
 from validator import validator
 import random
 import numpy as np
-from tqdm import tqdm
 import os
-import time
+
 random.seed(1)
 np.random.seed(1)
 

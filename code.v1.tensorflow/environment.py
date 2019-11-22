@@ -5,6 +5,23 @@ from sklearn.preprocessing import MinMaxScaler
 from constants import LOOK_BACK
 
 
+def files_data_loading(repo_files):
+	repo_data = []
+	repo_target_data = []
+	for file_name in repo_files:
+		df = pd.read_csv(file_name, usecols=[1, 2], header=0, names=['value', 'anomaly'])
+		values = df[['value']].values.astype(np.float32)
+		targets = df[['anomaly']].values.astype(np.float32)
+		scaler = MinMaxScaler()
+		scaled_values = scaler.fit_transform(values)
+		repo_data.append(scaled_values)
+
+		scaled_targets = scaler.fit_transform(targets)
+		repo_target_data.append(scaled_targets)
+
+	return repo_data, repo_target_data
+
+
 class DataEnvironment:
 	ANOMALY = 1
 	NOT_ANOMALY = 0
@@ -23,12 +40,14 @@ class DataEnvironment:
 		self.current_file_id = 0
 		self.fix_dataset = False
 		self.look_back = look_back
+		self.state = None
+		self.index_data = None
 		for subdir, dirs, files in os.walk(self.repo_dir):
 			for file in files:
 				if file.find('.csv') != -1:
 					self.repo_files.append(os.path.join(subdir, file))
 
-		self.repo_data, self.repo_target_data = self.files_data_loading(self.repo_files)
+		self.repo_data, self.repo_target_data = files_data_loading(self.repo_files)
 
 	def reset(self):
 		if not self.fix_dataset:
@@ -50,22 +69,6 @@ class DataEnvironment:
 			self.state = self.state_function(self.data, self.index_data, self.state, action)
 
 		return self.state, reward, done
-
-	def files_data_loading(self, repo_files):
-		repo_data = []
-		repo_target_data = []
-		for file_name in repo_files:
-			df = pd.read_csv(file_name, usecols=[1, 2], header=0, names=['value', 'anomaly'])
-			values = df[['value']].values.astype(np.float32)
-			targets = df[['anomaly']].values.astype(np.float32)
-			scaler = MinMaxScaler()
-			scaled_values = scaler.fit_transform(values)
-			repo_data.append(scaled_values)
-
-			scaled_targets = scaler.fit_transform(targets)
-			repo_target_data.append(scaled_targets)
-
-		return repo_data, repo_target_data
 
 	def reward_function(self, action):
 

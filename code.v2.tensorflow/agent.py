@@ -1,10 +1,6 @@
 import numpy as np
-import keras.backend.tensorflow_backend as backend
 from keras.models import Sequential, load_model
-from keras.layers import LSTM, Dense, Dropout, Conv2D, MaxPooling2D, Activation, Flatten
-from keras.optimizers import Adam, SGD
-from keras.callbacks import TensorBoard
-import tensorflow as tf
+from keras.layers import LSTM, Dense
 from collections import deque
 import random
 from constants import SHAPE

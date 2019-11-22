@@ -1,7 +1,9 @@
 from constants import SHAPE
 import matplotlib.pyplot as plt
 import numpy as np
-def validator(agent, env,episodes=1):
+
+
+def validator(agent, env, episodes=1):
 	for episode in range(episodes):
 		current_state = env.reset()
 		
@@ -10,23 +12,21 @@ def validator(agent, env,episodes=1):
 		reward_record = []
 		done = False
 		while not done:
-			reshaped_current_state = current_state.reshape(1,SHAPE[0],SHAPE[1])
+			reshaped_current_state = current_state.reshape(1, SHAPE[0], SHAPE[1])
 			action = np.argmax(agent.get_qs(reshaped_current_state))
-		
-
 			new_state, reward, done = env.step(action)
 
-		# Transform new continous state to new discrete state and count reward
-			#episode_reward += reward
+		# Transform new continuous state to new discrete state and count reward
+			# episode_reward += reward
 
 			current_state = new_state
-			#step += 1
-			state_record.append(current_state[len(current_state)-1,0])
+			# step += 1
+			state_record.append(current_state[len(current_state)-1, 0])
 			action_record.append(action)
 			reward_record.append(reward)
 
-		#plotting
-		fig, axs = plt.subplots(3,sharex=True)
+		# plotting
+		fig, axs = plt.subplots(3, sharex=True)
 		fig.suptitle('Episode wise stats')
 		axs[0].plot(state_record)
 		axs[0].set_title('data')
