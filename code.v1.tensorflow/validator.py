@@ -1,9 +1,11 @@
 from constants import SHAPE
 import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
 
 
 def validator(agent, env, episodes=1):
+	sns.set(style="whitegrid")
 	for episode in range(episodes):
 		current_state = env.reset()
 		
@@ -34,6 +36,7 @@ def validator(agent, env, episodes=1):
 		axs[1].set_title('action_record')
 		axs[2].plot(reward_record)
 		axs[2].set_title('reward_record')
+		# plt.savefig(f'results/fig{episode}.eps', format='eps', dpi=1200)
 		plt.show()
 	
 	print('validation done')
