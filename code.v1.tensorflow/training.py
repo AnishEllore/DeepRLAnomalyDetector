@@ -1,6 +1,7 @@
 from constants import SHAPE, FILE_PATH, EPISODES, epsilon, EPSILON_DECAY, MIN_EPSILON, AGGREGATE_STATS_EVERY,\
     MODEL_NAME
 from environment import DataEnvironment
+
 from agent import DQNagent
 from validator import validator
 import random
@@ -15,7 +16,8 @@ if not os.path.isdir('models'):
     os.makedirs('models')
 env = DataEnvironment(FILE_PATH)
 LOAD_MODEL = None
-LOAD_MODEL = 'models/AnomalyDetector_EPISODES_2000_TIME_1572682522.model'
+# LOAD_MODEL = 'models/AnomalyDetector_EPISODES_2000_TIME_1572682522.model'
+LOAD_MODEL = 'models/AnomalyDetector_pass1_with_prioritised_experienced_replay___346.00max__216.64avg___72.00min__1574960952.model'
 agent = DQNagent(LOAD_MODEL)
 
 ep_rewards = []
@@ -56,7 +58,7 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
         # Every step we update replay memory and train main network
         agent.update_replay_memory((current_state, action, reward, new_state, done))
-        agent.train(done)
+        agent.train(done, epsilon)
 
         current_state = new_state
         step += 1
@@ -84,4 +86,4 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 '''
 print('done')
 
-validator(agent, env, 20)
+validator(agent, env, 10)
