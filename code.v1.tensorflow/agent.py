@@ -115,7 +115,7 @@ class DQNagent:
             return model
         else:
             model = Sequential()
-            model.add(LSTM(64, input_shape=shape))
+            model.add(LSTM(32, input_shape=shape))
             # model.add(Dropout(0.2))
             # model.add(BatchNormalization())
             # model.add(Dense(32, activation='relu'))

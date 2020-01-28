@@ -17,10 +17,12 @@ if not os.path.isdir('models'):
 env = DataEnvironment(FILE_PATH)
 LOAD_MODEL = None
 # LOAD_MODEL = 'models/AnomalyDetector_EPISODES_2000_TIME_1572682522.model'
-LOAD_MODEL = 'models/AnomalyDetector_pass1_with_prioritised_experienced_replay___346.00max__216.64avg___72.00min__1574960952.model'
+# LOAD_MODEL = 'models/AnomalyDetector_pass1_with_prioritised_experienced_replay___346.00max__216.64avg___72.00min__1574960952.model'
+LOAD_MODEL = 'models/changed_state_A1Benchmark()_EPISODES_134_TIME_1580216916.model'
 agent = DQNagent(LOAD_MODEL)
 
 ep_rewards = []
+
 '''
 for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 
@@ -43,12 +45,16 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
             reshaped_current_state = current_state.reshape(1, SHAPE[0], SHAPE[1])
             # print(current_state)
             action = np.argmax(agent.get_qs(reshaped_current_state))
+            true_action = action
         else:
             # Get random action
+            true_action = None
             action = np.random.randint(0, env.ACTION_SPACE_SIZE)
 
-        new_state, reward, done = env.step(action)
-
+        new_state, reward, done = env.step(action, true_action)
+        # print('***************')
+        # print(new_state)
+        # print('################')
         # Transform new continous state to new discrete state and count reward
         episode_reward += reward
 
@@ -86,4 +92,4 @@ for episode in tqdm(range(1, EPISODES + 1), ascii=True, unit='episodes'):
 '''
 print('done')
 
-validator(agent, env, 10)
+validator(agent, env, 67)

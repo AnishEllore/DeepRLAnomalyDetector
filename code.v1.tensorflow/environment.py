@@ -59,19 +59,27 @@ class DataEnvironment:
 
 		return self.state
 
-	def step(self, action):
+	def step(self, action, true_action, consider_agent=False):
 		reward = self.reward_function(action)
+		# if true_action is None:
+		true_action = self.target[self.index_data]
 		self.index_data += 1
+
 		if self.index_data >= len(self.data):
 			done = 1
 		else:
 			done = 0
-			self.state = self.state_function(self.data, self.index_data, self.state, action)
 
+			# for original thiking of state
+			if consider_agent:
+				self.state = self.state_function(self.data, self.index_data, self.state, action)
+			# give true information to state
+			else:
+				self.state = self.state_function(self.data, self.index_data, self.state, true_action)
 		return self.state, reward, done
 
 	def reward_function(self, action):
-
+		# print('TRUE action ', self.target[self.index_data])
 		if self.target[self.index_data] == 1:
 			if action == 1:
 				return self.TP_REWARD
